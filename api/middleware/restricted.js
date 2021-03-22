@@ -1,5 +1,24 @@
-module.exports = (req, res, next) => {
-  next();
+ function restrict() {
+   
+  return async (req, res, next) => {
+    try{
+      if (!req.session || !req.session.user) {
+        return res.status(401).json({
+          message: "Invalid credentials",
+        })
+      }
+ 
+    next();
+
+    } catch(err) {
+
+      next(err)
+
+    }
+
+  }
+
+};
   /*
     IMPLEMENT
 
@@ -11,4 +30,9 @@ module.exports = (req, res, next) => {
     3- On invalid or expired token in the Authorization header,
       the response body should include a string exactly as follows: "token invalid".
   */
+
+module.exports = {
+  
+  restrict,
+
 };
