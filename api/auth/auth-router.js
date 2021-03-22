@@ -1,6 +1,32 @@
 const router = require('express').Router();
+const jwt = require("jsonwebtoken");
+const db = require("../../data/dbConfig");
+const bcrypt = require("bcryptjs");
+const { restrict } = require("../middleware/restricted");
 
-router.post('/register', (req, res) => {
+router.post('/register', restrict(), async (req, res, next) => {
+
+  try {
+    const { username, password } = req.body;
+    const user = await db("users")
+        .where("users.username", username)
+
+    if (user) {
+      return res.status(409).json({
+        message: "Username is already taken",
+      })
+    }
+
+    const newUser = await db("")({
+      username,
+      password: await bcrypt.hash(password, 12),
+    })
+
+    res.status(201).json(newUser)
+  } catch(err) {
+    next(err)
+  }
+
   res.end('implement register, please!');
   /*
     IMPLEMENT
@@ -28,7 +54,39 @@ router.post('/register', (req, res) => {
   */
 });
 
-router.post('/login', (req, res) => {
+router.post('/login', async (req, res, next) => {
+
+  try {
+    const {username, password} = req.body;
+    const user = await db("")
+
+    if(user) {
+      return res.status(404).json({
+        message: "Invalid credentials"
+      })
+    }
+
+    const passwordValidate = await bcrypt.compare(password, user.password)
+    if(passwordValidation===false) {
+      return res.status(401).json({
+        message: "Invalid credntials"
+      })
+
+      const toden = jwt.sign({
+        username: user.username,
+        expiresIn: "120m",
+      }, "Keep IT safe!")
+
+      res.cookie("token", token)
+      res.json({
+        message: `Welcome ${user.username}`,
+        token: token
+      })
+    }
+
+  } catch(err) {
+      next(err)
+  }
   res.end('implement login, please!');
   /*
     IMPLEMENT
